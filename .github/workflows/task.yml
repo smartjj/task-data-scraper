@@ -1,0 +1,11 @@
+name: Python Task
+on:
+  schedule:
+    - cron: '30 * * * *'
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "[Python] 每5分钟发送报时 $(date)"
