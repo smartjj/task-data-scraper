@@ -1,11 +1,65 @@
-name: Python Task
+name: data-scraper Task
+
 on:
   schedule:
-    - cron: '30 * * * *'
+    - cron: '0 */6 * * *'
   workflow_dispatch:
 
 jobs:
-  ping:
+  run-task:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
+    
     steps:
-      - run: echo "[Python] 每5分钟发送报时 $(date)"
+    - uses: actions/checkout@v4
+    
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        
+    - name: Install dependencies
+      run: |
+        if [ -f requirements.txt ]; then
+          pip install -r requirements.txt
+        fi
+        
+    
+    - name: Set environment variable API_KEY
+      run: |
+        
+        echo "API_KEY=${{ secrets.API_KEY }}" >> $GITHUB_ENV
+        
+    
+    - name: Set environment variable DATABASE_URL
+      run: |
+        
+        echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> $GITHUB_ENV
+        
+    
+    - name: Set environment variable LOG_LEVEL
+      run: |
+        
+        echo "LOG_LEVEL=INFO" >> $GITHUB_ENV
+        
+    
+    
+    - name: Run task
+      run: |
+        if [ -f main.py ]; then
+          python main.py
+        elif [ -f run.py ]; then
+          python run.py
+        else
+          echo "No main.py or run.py found"
+          exit 1
+        fi
+        
+    - name: Upload logs on failure
+      if: failure()
+      uses: actions/upload-artifact@v3
+      with:
+        name: task-logs
+        path: |
+          *.log
+          logs/
